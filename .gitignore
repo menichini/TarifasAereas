@@ -1,3 +1,7 @@
 logs/
 plugins/
 config/
+
+data/
+
+*.pyc
