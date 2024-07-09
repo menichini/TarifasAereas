@@ -9,6 +9,7 @@ de pós-graduação DevOps da UFMT. Utilização de ubuntu/debian para executar 
 - Pyenv
 - Poetry
 - Airflow
+- Criar a pasta **data** dentro do repositório, baixar e extrair os arquivos zipados para esta pasta, ignorando os subdiretórios "anac".
 
 ## Build
 
