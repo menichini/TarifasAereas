@@ -14,17 +14,19 @@ de pós-graduação DevOps da UFMT. Utilização de ubuntu/debian para executar 
 
 - Instalação do Python - Confira  uma das formas definidas em https://python.org.br/
 
-- Instalação e configuração do pyenv
+- Instalação e configuração do pyenv e a versão do python do projeto
 ```sh
 # Instalação
 curl https://pyenv.run | bash
 ```
 
 ```sh
-# Configuração de ambiente do pyenv
+# Configuração de ambiente do pyenv (fazer o export e eval sempre que inicializar o terminal)
 export PYENV_ROOT="$HOME/.pyenv"
 [[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"
 eval "$(pyenv init -)"
+```
+```sh
 # Instalar a mesma versão do python da imagem do airflow
 pyenv install 3.12.4
 # Selecionar a versão do python pro repositório
