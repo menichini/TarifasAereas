@@ -1,7 +1,10 @@
+"""
+Pipeline dos dados da ANAC
+"""
 from airflow.decorators import dag, task
-from airflow.operators.python import PythonOperator
+from airflow.models.baseoperator import chain
 from pandas import read_csv
-from numpy import int8, int32
+from numpy import int8, int16, int32
 
 
 DAG_ID = 'tarifas_areas_anac'
@@ -40,7 +43,7 @@ def tarifas_areas_anac_dag():
         ).values[0]
 
         tipos_colunas_ano_mes_tarifa_assento = {
-            cabecalho[0]: int8, cabecalho[1]: int8,
+            cabecalho[0]: int16, cabecalho[1]: int8,
             cabecalho[5]: float, cabecalho[6]: int32
         }
 
@@ -56,7 +59,19 @@ def tarifas_areas_anac_dag():
         ]
 
         print(dados_tarifas.info())
+        return dados_tarifas.to_dict(orient='records')
 
-    extracao_e_limpeza("/opt/airflow/data/TARIFA_N_202305.CSV")
+    @task
+    def conversao_oaci(dados_tarifas: dict):
+        """
+            Converte os códigos OACI e faz a carga dos dados
+        """
+        print(dados_tarifas)
+        return dados_tarifas
+
+
+    tarifas = extracao_e_limpeza("/opt/airflow/data/TARIFA_N_202305.CSV")
+
+    chain(tarifas, conversao_oaci(tarifas))
 
 dag = tarifas_areas_anac_dag()
