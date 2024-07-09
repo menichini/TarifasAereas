@@ -5,6 +5,7 @@ from airflow.decorators import dag, task
 from airflow.models.baseoperator import chain
 from pandas import read_csv
 from numpy import int8, int16, int32
+import os
 
 
 DAG_ID = 'tarifas_areas_anac'
@@ -62,47 +63,46 @@ def tarifas_areas_anac_dag():
         return dados_tarifas.to_dict(orient='records')
 
     @task
-    def conversao_oaci(dados_tarifas: dict):
+    
+   def conversao_oaci():
         """
             Converte os códigos OACI e faz a carga dos dados
         """
-    # Definir os caminhos dos arquivos
-    public_airfields_path = "data/metadata/cadastro-de-aerodromos-civis-publicos.csv"
-    private_airfields_path = "data/metadata/AerodromosPrivados.csv"
-    output_dir = "TarifasAereas/data/Output"
+        # Definir os caminhos dos arquivos
+        public_airfields_path = "/opt/airflow/data/metadata/cadastro-de-aerodromos-civis-publicos.csv"
+        private_airfields_path = "/opt/airflow/data/metadata/AerodromosPrivados.csv"
+        output_dir = "/opt/airflow/TarifasAereas/data/Output"
 
-    # Carregar os arquivos CSV com a codificação 'latin1' e delimitador ';'
-    public_airfields_df = pd.read_csv(public_airfields_path, encoding='latin1', delimiter=';')
-    private_airfields_df = pd.read_csv(private_airfields_path, encoding='latin1', delimiter=';')
+        # Garantir que o diretório de saída exista
+        os.makedirs(output_dir, exist_ok=True)
 
-    # Selecionar os campos necessários
-    fields = ['Código OACI', 'CIAD', 'Nome', 'Município', 'UF']
-    public_airfields_selected = public_airfields_df[fields]
-    private_airfields_selected = private_airfields_df[fields]
+        # Carregar os arquivos CSV com a codificação 'latin1' e delimitador ';'
+        public_airfields_df = pd.read_csv(public_airfields_path, encoding='latin1', delimiter=';', usecols=[1, 2, 3, 4])
+        private_airfields_df = pd.read_csv(private_airfields_path, encoding='latin1', delimiter=';', usecols=[1, 2, 3, 4, 5])
 
-    # Excluir a primeira linha
-    public_airfields_selected = public_airfields_selected.iloc[1:]
-    private_airfields_selected = private_airfields_selected.iloc[1:]
+        # Selecionar os campos necessários e renomear as colunas para um formato consistente
+        public_airfields_df.columns = ['Código OACI', 'CIAD', 'Nome', 'Município']
+        private_airfields_df.columns = ['Código OACI', 'CIAD', 'Nome', 'Município', 'UF']
 
-    # Concatenar os dois DataFrames
-    all_airfields_selected = pd.concat([public_airfields_selected, private_airfields_selected])
+        # Adicionar a coluna 'UF' ao dataframe public_airfields_df com valores nulos, se necessário
+        if 'UF' not in public_airfields_df.columns:
+            public_airfields_df['UF'] = None
 
-    # Salvar os dados extraídos em formato JSON e XLS
-    output_json_path = f"{output_dir}/conversao_oaci.json"
-    output_xls_path = f"{output_dir}/conversao_oaci.xls"
+        # Concatenar os dois DataFrames
+        all_airfields_selected = pd.concat([public_airfields_df, private_airfields_df])
 
-    all_airfields_selected.to_json(output_json_path, orient='records', lines=True)
-    all_airfields_selected.to_excel(output_xls_path, index=False)
+        # Salvar os dados extraídos em formato JSON e XLS
+        output_json_path = os.path.join(output_dir, "conversao_oaci.json")
+        output_xls_path = os.path.join(output_dir, "conversao_oaci.xls")
 
-    # Visualização dos 10 primeiros registros para validação
-    print(all_airfields_selected.head(10))
+        all_airfields_selected.to_json(output_json_path, orient='records', lines=True)
+        all_airfields_selected.to_excel(output_xls_path, index=False)
 
-        print(dados_tarifas)
-        return dados_tarifas
-
+        # Imprimir os 10 primeiros registros para validação
+        print(all_airfields_selected.head(10))
 
     tarifas = extracao_e_limpeza("/opt/airflow/data/TARIFA_N_202305.CSV")
 
-    chain(tarifas, conversao_oaci(tarifas))
+    chain(tarifas, conversao_oaci())
 
 dag = tarifas_areas_anac_dag()
