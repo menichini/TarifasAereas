@@ -9,8 +9,8 @@ de pós-graduação DevOps da UFMT. Utilização de ubuntu/debian para executar 
 - Pyenv
 - Poetry
 - Airflow
-- Criar a pasta **data** dentro do repositório, baixar e extrair os arquivos zipados para esta pasta, ignorando os subdiretórios "anac".
-- Baixar [aeródromos públicos e privados](https://www.gov.br/anac/pt-br/assuntos/regulados/aerodromos/lista-de-aerodromos-civis-cadastrados) públicos e colocá-los na pasta metadata dentro da pasta data, como metadados para OACI.
+- Criar a pasta **data/input** dentro do repositório, baixar e extrair os arquivos zipados para esta pasta, ignorando os subdiretórios "anac".
+- Baixar [aeródromos públicos e privados](https://www.gov.br/anac/pt-br/assuntos/regulados/aerodromos/lista-de-aerodromos-civis-cadastrados) públicos e colocá-los na pasta **metadata** dentro da pasta **data**, como metadados para OACI.
 - Baixar a listagem de códigos de aeroportos no arquivo csv no [repositório](https://github.com/ip2location/ip2location-iata-icao) e colocar o arquivo dentro da pasta **data/metadata**.
 
 ## Build
