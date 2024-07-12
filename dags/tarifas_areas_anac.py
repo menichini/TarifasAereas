@@ -30,8 +30,7 @@ def tarifas_areas_anac_dag():
         # Quando o caminho começa com 'TARIFA'
         # existe uma coluna a mais no arquivo
         # não especificada no dicionário, ignorá-la
-
-        if not data_path.find("TARIFA"):
+        if data_path.find("TARIFA") == -1:
             usecols = list(range(7))
         else:
             usecols = list(range(1, 8))
@@ -115,8 +114,22 @@ def tarifas_areas_anac_dag():
             os.path.join(output_dir, f"{filename}.csv"), sep=';', index=False, encoding="latin1"
         )
 
-    tarifas = extracao_e_limpeza("/opt/airflow/data/TARIFA_N_202305.CSV")
+    # Separar em grupos de 5 para não sobrecarregar
+    # a execução do pipeline, fique a vontade para
+    # alterar o valor conforme você precisar
+    tasks = []
+    processing_files = os.listdir("/opt/airflow/data/input")
+    tasks = []
+    processing_files = os.listdir("/opt/airflow/data/input")
+    for index, csv_file in enumerate(processing_files):
+        tarifas = extracao_e_limpeza(
+            f"/opt/airflow/data/input/{csv_file}"
+        )
+        if index % 5 == 0:
+            tasks.append([])
+        tasks[-1].extend([tarifas, conversao_oaci(tarifas)])
 
-    chain(tarifas, conversao_oaci(tarifas))
+    for task_group in tasks:
+        chain(*task_group)
 
 dag = tarifas_areas_anac_dag()
