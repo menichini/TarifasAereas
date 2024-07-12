@@ -41,3 +41,13 @@ pyenv local 3.12.4
 pip install poetry
 poetry install --no-root
 ```
+
+- Configuração do Airflow e do CeleryExecutor para rodar as tasks em paralelo para a pasta mapeada.
+```sh
+mkdir -p ./dags ./logs ./plugins ./config
+echo "[core]
+executor=CeleryExecutor
+broken_url=redis://localhost:6379/0
+result_backend=db+postgresql://airflow:airflow@postgres/airflow" > ./config/airflow.cfg
+docker compose up -d
+```
